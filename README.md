@@ -1,6 +1,6 @@
 ![Imgur](http://i.imgur.com/SGUP2UA.png)
 
-### Pixavive Survival
+### Pixavive Survival (Alpha)
 
 ===
 
@@ -29,7 +29,7 @@ The game utilizes the A* pathfinding algorithm, using the Manhattan distance heu
 
 ===
 
-** Plans **
+**Plans:**
 
 * Continue working on the active project, "Pokémon Walking").
 * Optimize the A* pathfinding algorithm.
