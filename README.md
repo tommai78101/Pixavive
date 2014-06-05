@@ -56,3 +56,4 @@ You may head over to The Helper Forums, or Java-Gaming.org to post your feedback
 | Site Page | Discussion Thread |
 |:---:|:---:|
 | The Helper Forums | http://www.thehelper.net/threads/java-pixavive-alpha-derived-from-demo-concept-i-was-working-on.161041/page-3 |
+| Java-Gaming.org | http://www.java-gaming.org/topics/iconified/31216/view.html |
