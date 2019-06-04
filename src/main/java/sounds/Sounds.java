@@ -1,8 +1,8 @@
 package sounds;
 
-import java.applet.Applet;
-import java.applet.AudioClip;
+import java.io.IOException;
 import java.util.Random;
+import javax.sound.sampled.*;
 
 public class Sounds {
 	public static Sounds logo = new Sounds("/sounds/logo.wav");
@@ -14,18 +14,31 @@ public class Sounds {
 	public static Sounds placingBuilding = new Sounds("/sounds/placingBuilding.wav");
 	public static Sounds enemyPlacingBuilding = new Sounds("/sounds/enemyPlacingBuilding.wav");
 	public static Sounds select = new Sounds("/sounds/select.wav");
-	
-	private AudioClip clip;
-	
+
+	private Clip clip;
+
 	public Sounds(String filename) {
-		clip = Applet.newAudioClip(Sounds.class.getResource(filename));
+		try {
+			clip = AudioSystem.getClip();
+			AudioInputStream audioInput = AudioSystem.getAudioInputStream(Sounds.class.getResource(filename));
+			clip.open(audioInput);
+		} 
+		catch (LineUnavailableException e) {
+			e.printStackTrace();
+		} 
+		catch (UnsupportedAudioFileException e) {
+			e.printStackTrace();
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void play() {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				clip.play();
+				clip.loop(0);
 			}
 		}).start();
 	}
