@@ -163,7 +163,9 @@ public class MainMenu extends Renderable {
 			if (r.getID() == CoreID.GAME) {
 				this.testGame = r;
 				this.testGame.setID(CoreID.GAME);
-				this.testGame.setActive();
+				SurvivalGame game = (SurvivalGame) this.testGame;
+				game.reset();
+				game.setActive();
 				break;
 			}
 		}

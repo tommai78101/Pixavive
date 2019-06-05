@@ -32,7 +32,7 @@ public class Area {
 	private List<PathNode> closed = new ArrayList<PathNode>();
 	private PathNode start;
 	private PathNode goal;
-	private Heuristic heuristic;
+	// private Heuristic heuristic;
 	
 	public Area(int w, int h) {
 		initialize(w, h);
@@ -44,7 +44,7 @@ public class Area {
 		this.start = null;
 		this.goal = null;
 		this.nodeMap = new ArrayList<ArrayList<PathNode>>();
-		this.heuristic = new DiagonalHeuristic();
+		// this.heuristic = new DiagonalHeuristic();
 		
 		Random random = new Random();
 		random.setSeed(System.nanoTime());
@@ -121,39 +121,39 @@ public class Area {
 		return reconstructPath(current);
 	}
 	
-	private ArrayList<PathNode> getCardinalNeighbors(PathNode node) {
-		ArrayList<PathNode> neighborList = new ArrayList<PathNode>();
-		int x = node.x;
-		int y = node.y;
+	// private ArrayList<PathNode> getCardinalNeighbors(PathNode node) {
+	// 	ArrayList<PathNode> neighborList = new ArrayList<PathNode>();
+	// 	int x = node.x;
+	// 	int y = node.y;
 		
-		int x0 = x - 1;
-		int x2 = x + 1;
-		int y0 = y - 1;
-		int y2 = y + 1;
+	// 	int x0 = x - 1;
+	// 	int x2 = x + 1;
+	// 	int y0 = y - 1;
+	// 	int y2 = y + 1;
 		
-		if (x < 0 || y < 0 || x > width - 1 || y > height - 1)
-			return null;
+	// 	if (x < 0 || y < 0 || x > width - 1 || y > height - 1)
+	// 		return null;
 		
-		//----------------------------------------------
-		if (x0 > 0)
-			neighborList.add(nodeMap.get(y).get(x0));
-		//----------------------------------------------
-		if (y0 > 0)
-			neighborList.add(nodeMap.get(y0).get(x));
-		if (y2 < height - 1)
-			neighborList.add(nodeMap.get(y2).get(x));
-		//----------------------------------------------
-		if (x2 < width - 1)
-			neighborList.add(nodeMap.get(y).get(x2));
-		//----------------------------------------------
+	// 	//----------------------------------------------
+	// 	if (x0 > 0)
+	// 		neighborList.add(nodeMap.get(y).get(x0));
+	// 	//----------------------------------------------
+	// 	if (y0 > 0)
+	// 		neighborList.add(nodeMap.get(y0).get(x));
+	// 	if (y2 < height - 1)
+	// 		neighborList.add(nodeMap.get(y2).get(x));
+	// 	//----------------------------------------------
+	// 	if (x2 < width - 1)
+	// 		neighborList.add(nodeMap.get(y).get(x2));
+	// 	//----------------------------------------------
 		
-		return neighborList;
-	}
+	// 	return neighborList;
+	// }
 	
 	private ArrayList<PathNode> getNeighbors(PathNode node) {
 		ArrayList<PathNode> neighborList = new ArrayList<PathNode>();
-		int x = node.x;
-		int y = node.y;
+		int x = node.pixelX;
+		int y = node.pixelY;
 		
 		int x0 = x - 1;
 		int x2 = x + 1;

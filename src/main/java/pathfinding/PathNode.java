@@ -1,16 +1,20 @@
 package pathfinding;
 
-public class PathNode implements Comparable<PathNode> {
+import abstracts.Point;
+
+public class PathNode extends Point implements Comparable<PathNode> {
 	public PathNode parent;
-	public int x;
-	public int y;
+	public int pixelX;
+	public int pixelY;
 	public double distanceFromStart;
 	public double heuristicDistanceToGoal;
 	private boolean isObstacle;
 	
 	public PathNode(int x, int y) {
-		this.x = x;
-		this.y = y;
+		this.pixelX = x;
+		this.pixelY = y;
+		this.x = (int) Math.rint(x);
+		this.y = (int) Math.rint(y);
 		initialize();
 	}
 	
@@ -32,7 +36,7 @@ public class PathNode implements Comparable<PathNode> {
 	}
 	
 	public boolean equals(PathNode other) {
-		return this.x == other.x && this.y == other.y;
+		return this.pixelX == other.pixelX && this.pixelY == other.pixelY;
 	}
 	
 	public boolean isObstacle() {

@@ -38,7 +38,8 @@ public class Sounds {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				clip.loop(0);
+				clip.setFramePosition(0);
+				clip.start();
 			}
 		}).start();
 	}

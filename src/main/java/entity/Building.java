@@ -19,16 +19,24 @@ public class Building extends Entity {
 		health = 0xFF;
 		this.attackDamage = 0x0;
 		this.unitSpawnedCounter = 1;
+		this.setID(ID.BUILDING);
 	}
-	
-	public void setColor(int c) {
-		color = c;
-		teamColor = c;
+
+	public Building(int x, int y) {
+		this.x = x;
+		this.y = y;
+		alphaValue = 0;
+		isSendingUnitOut = false;
+		shouldDespawn = false;
+		health = 0xFF;
+		this.attackDamage = 0x0;
+		this.unitSpawnedCounter = 1;
+		this.setID(ID.BUILDING);
 	}
 	
 	public void setColor(TeamColor teamColor) {
 		this.color = teamColor.color;
-		this.teamColor = teamColor.color;
+		this.teamColor = teamColor;
 	}
 	
 	public void tick() {
@@ -75,14 +83,14 @@ public class Building extends Entity {
 		return color;
 	}
 	
-	public int getTeamColor() {
-		return teamColor;
+	public TeamColor getTeamColor() {
+		return this.teamColor;
 	}
 	
 	public int getHealth() {
 		return health;
 	}
-	
+
 	@Override
 	public void takeDamage(Entity attacker) {
 		if (attacker.teamColor != this.teamColor) {
@@ -98,7 +106,6 @@ public class Building extends Entity {
 	
 	public Dot createUnit() {
 		Dot dot = new Dot(this.teamColor);
-		dot.id = ID.DOT;
 		dot.number = unitSpawnedCounter;
 		dot.setSpawnBuilding(this);
 		unitSpawnedCounter++;

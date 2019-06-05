@@ -1,20 +1,22 @@
 package entity;
 
+import abstracts.Point;
 import game.PixelData;
+import game.SurvivalGame.TeamColor;
 
-public class Entity {
+public class Entity extends Point {
 	
 	public enum ID {
 		BUILDING, DOT;
 	}
 	
-	public double x, y;
 	public int color;
-	public int teamColor;
+	public TeamColor teamColor;
 	public int health;
 	public int attackDamage;
 	public ID id;
 	public int number;
+	public PixelData pixelData;
 	
 	public boolean shouldDespawn;
 	
@@ -34,6 +36,10 @@ public class Entity {
 	public void takeDamage(Entity attacker) {
 		this.health -= attacker.attackDamage;
 	}
+
+	public int getCurrentHealth() {
+		return this.health;
+	}
 	
 	public void setAttackDamage(int value) {
 		this.attackDamage = value;
@@ -44,9 +50,12 @@ public class Entity {
 	}
 	
 	public PixelData getPixelData() {
-		PixelData data = new PixelData();
-		data.x = (int) Math.rint(this.x);
-		data.y = (int) Math.rint(this.y);
-		return data;
+		if (this.pixelData == null) {
+			this.pixelData = new PixelData();
+			this.pixelData.x = (int) Math.rint(this.x);
+			this.pixelData.y = (int) Math.rint(this.y);
+			this.pixelData.color = this.teamColor.color;
+		}
+		return this.pixelData;
 	}
 }

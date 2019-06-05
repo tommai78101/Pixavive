@@ -1,7 +1,9 @@
 package game;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Random;
 import main.Art;
 import main.Art.Bitmap;
@@ -13,7 +15,6 @@ import abstracts.Renderable;
 import entity.Building;
 import entity.Dot;
 import entity.Entity;
-import entity.Entity.ID;
 import entity.Obstacle;
 import entity.Unit;
 
@@ -51,25 +52,30 @@ public class SurvivalGame extends Renderable {
 	private InputHandler inputHandler;
 	private HeadsUpDisplay hud;
 	
-	private ArrayList<Building> buildings;
-	private ArrayList<Dot> units;
+	// private ArrayList<Building> buildings;
+	// private ArrayList<Dot> units;
 	private ArrayList<PixelData> pixels;
 	private ArrayList<Obstacle> obstacles;
+
+	private ArrayList<Faction> factions;
 	
 	//Variables used in the game.
 	private boolean gameHasInitialized;
 	private boolean gameIsOver;
-	private boolean greenWins;
+	private int greenWins;
 	private int playerCooldownTimer;
 	private int computerCooldownTimer;
 	private boolean fadeToBlack;
 	private boolean doneFadingToBlack;
-	private int computerEnemyBuildingsCounter;
-	private int computerEnemyUnitsCounter;
-	private int playerBuildingsCounter;
-	private int playerUnitsCounter;
-	private int killCount;
-	
+	// private int computerEnemyBuildingsCounter;
+	// private int computerEnemyUnitsCounter;
+	// private int playerBuildingsCounter;
+	// private int playerUnitsCounter;
+	// private int killCount;
+
+	private PlayerFaction playerFaction;
+	private ComputerFaction computerFaction;
+
 	public Area pathArea;
 	
 	public SurvivalGame(GameComponent gameComponent) {
@@ -77,64 +83,74 @@ public class SurvivalGame extends Renderable {
 		this.difficulty = Difficulty.AI_NORMAL;
 		this.inputHandler = gameComponent.inputHandler;
 		
-		this.buildings = new ArrayList<Building>();
-		this.units = new ArrayList<Dot>();
+		// this.buildings = new ArrayList<Building>();
+		// this.units = new ArrayList<Dot>();
+
 		this.pixels = new ArrayList<PixelData>();
-		
+		this.factions = new ArrayList<Faction>();
+
 		this.pathArea = new Area(GameComponent.WIDTH / GameComponent.SCALE, GameComponent.HEIGHT / GameComponent.SCALE);
 		this.obstacles = this.pathArea.getObstacleList();
+
+		this.playerFaction = new PlayerFaction(this.pathArea);
+		this.computerFaction = new ComputerFaction(this.pathArea);
+		this.factions.add(this.playerFaction);
+		this.factions.add(this.computerFaction);
 		
 		this.setActive();
 		initialize();
 	}
 	
-	private void buildingsLogic() {
-		for (Iterator<Building> i = buildings.iterator(); i.hasNext();) {
-			Building b = i.next();
-			b.tick();
-			if (b.shouldDespawn()) {
-				//TODO: Revisit this.
-				//Obstacle o = new Obstacle(b.getPixelData());
-				//this.pathArea.setObstacle(o);
-				//this.obstacles.add(o);
-				if (b.getTeamColor() == TeamColor.RED.color) {
-					computerEnemyBuildingsCounter--;
-					killCount += 2;
-				}
-				else
-					playerBuildingsCounter--;
-				i.remove();
-			}
-			if (b.isSendingUnitOut()) {
-				if (b.getTeamColor() == TeamColor.RED.color) {
-					if (computerEnemyUnitsCounter < ENEMY_BUILDING_LIMIT) {
-						units.add(b.createUnit());
-						computerEnemyUnitsCounter++;
-					}
-				}
-				else {
-					if (playerUnitsCounter < PLAYER_BUILDING_LIMIT) {
-						units.add(b.createUnit());
-						playerUnitsCounter++;
-					}
-				}
+	// private void buildingsLogic_old() {
+	// 	for (Iterator<Building> i = buildings.iterator(); i.hasNext();) {
+	// 		Building b = i.next();
+	// 		b.tick();
+	// 		if (b.shouldDespawn()) {
+	// 			//TODO: Revisit this.
+	// 			//Obstacle o = new Obstacle(b.getPixelData());
+	// 			//this.pathArea.setObstacle(o);
+	// 			//this.obstacles.add(o);
+	// 			if (b.getTeamColor() == TeamColor.RED.color) {
+	// 				computerEnemyBuildingsCounter--;
+	// 				killCount += 2;
+	// 			}
+	// 			else
+	// 				playerBuildingsCounter--;
+	// 			i.remove();
+	// 		}
+	// 		if (b.isSendingUnitOut()) {
+	// 			if (b.getTeamColor() == TeamColor.RED.color) {
+	// 				if (computerEnemyUnitsCounter < ENEMY_BUILDING_LIMIT) {
+	// 					units.add(b.createUnit());
+	// 					computerEnemyUnitsCounter++;
+	// 				}
+	// 			}
+	// 			else {
+	// 				if (playerUnitsCounter < PLAYER_BUILDING_LIMIT) {
+	// 					units.add(b.createUnit());
+	// 					playerUnitsCounter++;
+	// 				}
+	// 			}
 				
-				b.finishedSendingUnitOut();
-			}
-		}
-	}
-	
+	// 			b.finishedSendingUnitOut();
+	// 		}
+	// 	}
+	// }
+
 	private boolean checkBuildingPlacement() {
-		for (Building b : buildings) {
-			if (this.inputHandler.mouseX / GameComponent.SCALE == b.x && this.inputHandler.mouseY / GameComponent.SCALE == b.y)
-				return false;
+		for (Faction f : this.factions) {
+			ArrayList<Building> buildings = f.getBuildings();
+			for (Building b : buildings) {
+				if (this.inputHandler.mouseX / GameComponent.SCALE == b.x && this.inputHandler.mouseY / GameComponent.SCALE == b.y)
+					return false;
+			}
 		}
 		for (Obstacle o : obstacles) {
 			if (this.inputHandler.mouseX / GameComponent.SCALE == o.x && this.inputHandler.mouseY / GameComponent.SCALE == o.y)
 				return false;
 		}
-		if (playerBuildingsCounter >= PLAYER_BUILDING_LIMIT)
-			return false;
+		// if (playerBuildingsCounter >= PLAYER_BUILDING_LIMIT)
+		// 	return false;
 		return true;
 	}
 	
@@ -188,28 +204,32 @@ public class SurvivalGame extends Renderable {
 	}
 	
 	private void checkLosingConditions() {
-		if (checkNumberOfBuildingsAlive(TeamColor.RED) <= 0) {
-			this.greenWins = true;
-			this.gameIsOver = true;
-			this.hud.setInactive();
-			Sounds.gameOver.play();
-		}
-		else if (checkNumberOfBuildingsAlive(TeamColor.GREEN) <= 0) {
-			this.greenWins = false;
-			this.gameIsOver = true;
-			this.hud.setInactive();
-			Sounds.gameOver.play();
+		for (Faction f : this.factions) {
+			if (f.hasLost()) {
+				this.greenWins = ((f.getFactionColor() == TeamColor.RED) ? 1 : -1);
+				this.gameIsOver = true;
+				this.hud.setInactive();
+				Sounds.gameOver.play();
+				break;
+			}
 		}
 	}
 	
-	private int checkNumberOfBuildingsAlive(TeamColor color) {
-		int count = 0;
-		for (Building b : buildings) {
-			if (b.getTeamColor() == color.color)
-				count++;
-		}
-		return count;
-	}
+	// private int checkNumberOfBuildingsAlive(TeamColor color) {
+	// 	// int count = 0;
+	// 	// for (Building b : buildings) {
+	// 	// 	if (b.getTeamColor() == color.color)
+	// 	// 		count++;
+	// 	// }
+	// 	// return count;
+
+	// 	if (TeamColor.RED == color) {
+	// 		return computerEnemyBuildingsCounter;
+	// 	}
+	// 	else {
+	// 		return playerBuildingsCounter;
+	// 	}
+	// }
 	
 	private void clear() {
 		for (int i = 0; i < this.pixels.size(); i++) {
@@ -226,32 +246,19 @@ public class SurvivalGame extends Renderable {
 	private void createRandomNumberOfBuildings(int factor, TeamColor color) {
 		Random random = new Random();
 		factor = random.nextInt(factor) + 1;
-		
-		switch (color) {
-			case RED:
-				computerEnemyBuildingsCounter = factor;
+
+		Faction factionToBuild = null;
+		for (Faction f : this.factions) {
+			if (f.getFactionColor() == color) {
+				factionToBuild = f;
 				break;
-			case GREEN:
-				playerBuildingsCounter = factor;
-				break;
+			}
 		}
 		
 		for (int i = 0; i < factor; i++) {
-			Building building = new Building();
-			building.x = random.nextInt(GameComponent.WIDTH / GameComponent.SCALE);
-			building.y = random.nextInt(GameComponent.HEIGHT / GameComponent.SCALE);
-			boolean positionHasBuilding = false;
-			for (Building b : buildings) {
-				if (b.x == building.x && b.y == building.y) {
-					positionHasBuilding = true;
-					break;
-				}
-			}
-			if (!positionHasBuilding) {
-				building.setColor(color);
-				buildings.add(building);
-			}
-			else
+			int x = random.nextInt(GameComponent.WIDTH / GameComponent.SCALE);
+			int y = random.nextInt(GameComponent.HEIGHT / GameComponent.SCALE);
+			if (!factionToBuild.setBuilding(x, y))
 				//Tally count. Keeps track of what buildings were placed and checks if the buildings have valid positions.
 				i--;
 		}
@@ -259,7 +266,8 @@ public class SurvivalGame extends Renderable {
 	
 	private void fade() {
 		if (!fadeToBlack) {
-			if (greenWins) {
+			//Green is positive. Red is negative
+			if (greenWins > 0) {
 				if (checkFadingColor(0xFF00FF00))
 					fadeToBlack = true;
 			}
@@ -272,34 +280,14 @@ public class SurvivalGame extends Renderable {
 			doneFadingToBlack = true;
 	}
 	
-	private void gameLogic() {
-		if (!this.gameIsOver) {
-			if (this.playerCooldownTimer <= 0) {
-				if (this.inputHandler.mouseClicked) {
-					this.inputHandler.mouseClicked = false;
-					if (checkBuildingPlacement()) {
-						placeBuilding();
-					}
-				}
-			}
-			buildingsLogic();
-			unitsLogic();
-			obstaclesLogic();
-			playerTimerLogic();
-			randomEnemyBuilding();
-			checkLosingConditions();
-			this.hud.tick();
-		}
-	}
-	
 	private void gameOver() {
 		this.computerCooldownTimer = 0;
-		this.computerEnemyBuildingsCounter = 0;
-		this.computerEnemyUnitsCounter = 0;
-		this.playerBuildingsCounter = 0;
+		// this.computerEnemyBuildingsCounter = 0;
+		// this.computerEnemyUnitsCounter = 0;
+		// this.playerBuildingsCounter = 0;
 		this.playerCooldownTimer = 0;
-		this.playerUnitsCounter = 0;
-		this.killCount = 0;
+		// this.playerUnitsCounter = 0;
+		// this.killCount = 0;
 		if (this.doneFadingToBlack) {
 			MainMenu menu = null;
 			for (Renderable r : this.gameComponent.objects) {
@@ -332,10 +320,18 @@ public class SurvivalGame extends Renderable {
 		initializeGameData();
 		this.gameHasInitialized = true;
 	}
+
+	public void reset() {
+		this.initialize();
+	}
 	
 	private void initializeGameData() {
-		buildings.clear();
-		units.clear();
+		// buildings.clear();
+		// units.clear();
+
+		for (Faction f : this.factions) {
+			f.initialize();
+		}
 		
 		createRandomNumberOfBuildings(1, TeamColor.RED);
 		createRandomNumberOfBuildings(1, TeamColor.GREEN);
@@ -360,15 +356,15 @@ public class SurvivalGame extends Renderable {
 		
 		//Boolean flags
 		this.gameIsOver = false;
-		this.greenWins = false;
+		this.greenWins = 0;
 		this.fadeToBlack = false;
 		this.doneFadingToBlack = false;
 		
 		//Data values
 		this.playerCooldownTimer = 100;
-		this.computerEnemyUnitsCounter = 0;
-		this.playerUnitsCounter = 0;
-		this.killCount = 0;
+		// this.computerEnemyUnitsCounter = 0;
+		// this.playerUnitsCounter = 0;
+		// this.killCount = 0;
 	}
 	
 	private void initializePixelData() {
@@ -389,15 +385,17 @@ public class SurvivalGame extends Renderable {
 	}
 	
 	private void placeBuilding() {
-		Building building = new Building();
-		building.x = inputHandler.mouseX / GameComponent.SCALE;
-		building.y = inputHandler.mouseY / GameComponent.SCALE;
-		building.setColor(TeamColor.GREEN);
-		building.setID(ID.BUILDING);
-		building.setNumber(buildings.size() + 1);
-		buildings.add(building);
+		int x = inputHandler.mouseX / GameComponent.SCALE;
+		int y = inputHandler.mouseY / GameComponent.SCALE;
+		this.playerFaction.setBuilding(x, y);
+
+		// Building building = new Building();
+		// building.setColor(TeamColor.GREEN);
+		// building.setID(ID.BUILDING);
+		// building.setNumber(buildings.size() + 1);
+		// buildings.add(building);
 		this.playerCooldownTimer = 100;
-		playerBuildingsCounter++;
+		// playerBuildingsCounter++;
 	}
 	
 	private void playerTimerLogic() {
@@ -406,31 +404,18 @@ public class SurvivalGame extends Renderable {
 	}
 	
 	private void randomEnemyBuilding() {
-		if (this.computerCooldownTimer == 0 && computerEnemyBuildingsCounter <= ENEMY_BUILDING_LIMIT) {
+		if (this.computerCooldownTimer == 0 && this.computerFaction.getBuildingsCount() <= ENEMY_BUILDING_LIMIT) {
 			Random r = new Random();
-			boolean hasBuilding;
 			int x, y;
+			boolean hasPlacedBuilding = false;
 			do {
-				hasBuilding = false;
 				x = r.nextInt(GameComponent.WIDTH / GameComponent.SCALE);
 				y = r.nextInt(GameComponent.HEIGHT / GameComponent.SCALE);
-				for (Building b : buildings) {
-					if (x == b.x && y == b.y) {
-						hasBuilding = true;
-						break;
-					}
-				}
-				if (this.pathArea.nodeMap.get(y).get(x).isObstacle())
-					hasBuilding = true;
+				boolean isObstacle = this.pathArea.nodeMap.get(y).get(x).isObstacle();
+				hasPlacedBuilding = !isObstacle && !this.computerFaction.setBuilding(x, y);
 			}
-			while (hasBuilding);
-			Building b = new Building();
-			b.x = x;
-			b.y = y;
-			b.setColor(TeamColor.RED);
+			while (hasPlacedBuilding);
 			Sounds.enemyPlacingBuilding.play();
-			buildings.add(b);
-			computerEnemyBuildingsCounter++;
 		}
 		computerTimerLogic();
 	}
@@ -443,8 +428,11 @@ public class SurvivalGame extends Renderable {
 			}
 			else {
 				clear();
-				renderBuildings();
-				renderUnits();
+				// renderBuildings();
+				// renderUnits();
+				for (Faction f : this.factions) {
+					f.render(pixels);
+				}
 				renderObstacles();
 				renderMouseCursor();
 			}
@@ -465,10 +453,11 @@ public class SurvivalGame extends Renderable {
 			this.gameComponent.pixels[i] = this.pixels.get(i).color;
 	}
 	
-	private void renderBuildings() {
-		for (Building b : buildings)
-			b.render(pixels);
-	}
+	// private void renderBuildings() {
+	// 	for (Faction f : this.factions) {
+	// 		f.render(pixels);
+	// 	}
+	// }
 	
 	private void renderMouseCursor() {
 		int x = this.inputHandler.mouseX / GameComponent.SCALE;
@@ -478,10 +467,10 @@ public class SurvivalGame extends Renderable {
 			this.pixels.get(length).color = -1;
 	}
 	
-	private void renderUnits() {
-		for (Unit b : units)
-			b.render(pixels);
-	}
+	// private void renderUnits() {
+	// 	for (Unit b : units)
+	// 		b.render(pixels);
+	// }
 	
 	@Override
 	public void tick() {
@@ -494,54 +483,74 @@ public class SurvivalGame extends Renderable {
 				gameOver();
 		}
 	}
-	
-	private void unitsLogic() {
-		for (Iterator<Dot> i = units.iterator(); i.hasNext();) {
-			Dot u = i.next();
-			Entity entity = u.findNearestEntity(buildings, units);
-			if (entity != null) {
-				if (u.pathCounterIsReady() || u.path.isEmpty()) {
-					this.pathArea.setGoalNode(entity.getPixelData());
-					this.pathArea.setStartNode(u.getPixelData());
-					u.setPath(this.pathArea.createPath());
-					this.pathArea.reset();
+
+	private void gameLogic() {
+		if (this.playerCooldownTimer <= 0) {
+			if (this.inputHandler.mouseClicked) {
+				this.inputHandler.mouseClicked = false;
+				if (checkBuildingPlacement()) {
+					placeBuilding();
 				}
 			}
-			u.tick();
-			if (u.shouldDespawn()) {
-				//TODO: Revisit this.
-				//Obstacle o = new Obstacle(u.getPixelData());
-				//this.pathArea.setObstacle(o);
-				//this.obstacles.add(o);
-				if (u.getTeamColor() == TeamColor.RED.color) {
-					computerEnemyUnitsCounter--;
-					killCount++;
+		}
+		for (Faction f : this.factions) {
+			f.tick();
+		}
+
+		unitsLogic();
+		obstaclesLogic();
+		playerTimerLogic();
+		randomEnemyBuilding();
+		checkLosingConditions();
+		this.hud.tick();
+	}
+
+	private void unitsLogic() {
+		for (Iterator<Faction> iteratorA = this.factions.iterator(); iteratorA.hasNext();) {
+			Faction currentFaction = iteratorA.next();
+			for (Iterator<Faction> iteratorB = this.factions.iterator(); iteratorB.hasNext();) {
+				Faction enemyFaction = iteratorB.next();
+				if (currentFaction.getID() == enemyFaction.getID())
+					continue;
+				ArrayList<Dot> aUnits = currentFaction.getUnits();
+				ArrayList<Building> bBuildings = enemyFaction.getBuildings();
+				ArrayList<Dot> bUnits = enemyFaction.getUnits();
+				for (Iterator<Dot> unitIterator = aUnits.iterator(); unitIterator.hasNext();) { 
+					Dot dot = unitIterator.next();
+					Entity entity = dot.findNearestEntity(bBuildings, bUnits);
+					if (entity != null && dot.path.isEmpty() && dot.pathCounter == 0) {
+						this.pathArea.setGoalNode(entity.getPixelData());
+						this.pathArea.setStartNode(dot.getPixelData());
+						dot.setPath(this.pathArea.createPath());
+						this.pathArea.reset();
+					}
+					dot.tick();
+					if (dot.shouldDespawn()) {
+						unitIterator.remove();
+					}
 				}
-				else
-					playerUnitsCounter--;
-				i.remove();
 			}
 		}
 	}
 	
 	public int getKillCount() {
-		return this.killCount;
+		return this.playerFaction.getKillCount();
 	}
 	
 	public int getPlayerUnitsCounter() {
-		return this.playerUnitsCounter;
+		return this.playerFaction.getUnitsCount();
 	}
 	
 	public int getPlayerBuildingsCounter() {
-		return this.playerBuildingsCounter;
+		return this.playerFaction.getBuildingsCount();
 	}
 	
 	public int getEnemyUnitsCounter() {
-		return this.computerEnemyUnitsCounter;
+		return this.computerFaction.getUnitsCount();
 	}
 	
 	public int getEnemyBuildingsCounter() {
-		return this.computerEnemyBuildingsCounter;
+		return this.computerFaction.getBuildingsCount();
 	}
 	
 	private void obstaclesLogic() {

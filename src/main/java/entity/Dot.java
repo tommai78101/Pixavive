@@ -1,54 +1,55 @@
 package entity;
 
 import game.PixelData;
+import game.SurvivalGame.TeamColor;
 
 import java.util.ArrayList;
+import java.util.*;
 
 import pathfinding.PathNode;
 
 public class Dot extends Unit {
 	
-	public ArrayList<PathNode> path;
+	public LinkedList<PathNode> path;
 	public boolean shouldRender;
 	public int pathCounter;
 	
-	public Dot(int col) {
-		super(col);
+	public Dot(TeamColor color) {
+		super(color);
+		this.setID(ID.DOT);
 		this.setAttackDamage(0x08);
 		shouldRender = false;
-		this.path = new ArrayList<PathNode>();
+		this.path = new LinkedList<PathNode>();
 		pathCounter = 0;
 	}
 	
 	public void setPath(ArrayList<PathNode> path) {
 		if (path != null && !path.isEmpty()) {
-			this.path = path;
+			this.path.addAll(path);
 			this.pathCounter = 0;
 		}
 	}
 	
 	@Override
 	public void move() {
-		pathCounter++;
-		if (path != null) {
-			if (!path.isEmpty()) {
-				if (!shouldRender) {
-					if (targetEntity != null) {
-						PathNode node = path.remove(path.size() - 1);
-						if (Math.min(Math.abs(node.x - targetEntity.x), Math.abs(node.y - targetEntity.y)) < 1.9) {
-							this.attack();
-						}
-						else {
-							this.x = (node.x);
-							this.y = (node.y);
-						}
-						shouldRender = true;
-					}
+		shouldRender = true;
+		if (path != null && !path.isEmpty()) {
+			if (targetEntity != null) {
+				PathNode node = path.peekLast();
+				if (node != null && node.getDistance(targetEntity) >= ATTACK_DISTANCE * ATTACK_DISTANCE) {
+					this.x = (node.x);
+					this.y = (node.y);
+					path.pollLast();
+				}
+				else {
+					pathCounter = 1;
 				}
 			}
+			else {
+				path.clear();
+				pathCounter = 0;
+			}
 		}
-		if (pathCounter > 100)
-			pathCounter = 0;
 	}
 	
 	@Override
@@ -57,10 +58,5 @@ public class Dot extends Unit {
 			super.render(data);
 			shouldRender = false;
 		}
-		
-	}
-	
-	public boolean pathCounterIsReady() {
-		return pathCounter == 0;
 	}
 }
