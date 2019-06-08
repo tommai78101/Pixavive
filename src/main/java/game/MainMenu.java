@@ -146,11 +146,13 @@ public class MainMenu extends Renderable {
 	@Override
 	public void setActive() {
 		this.isActive = true;
+		this.inputHandler.mouseClicked = false;
 	}
 	
 	@Override
 	public void setInactive() {
 		this.isActive = false;
+		this.inputHandler.mouseClicked = false;
 	}
 	
 	public void setRetryGameOption() {

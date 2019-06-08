@@ -19,7 +19,6 @@ public class Unit extends Entity {
 
 	private int renderX, renderY;
 	private int attackTimer;
-	private Faction owner;
 
 	public Unit(TeamColor teamColor) {
 		this.teamColor = teamColor;
@@ -28,14 +27,6 @@ public class Unit extends Entity {
 		this.health = 0x20;
 		this.attackTimer = ATTACK_TIME;
 		this.shouldMove = false;
-	}
-
-	public void setFaction(Faction faction) {
-		this.owner = faction;
-	}
-
-	public Faction getFaction() {
-		return this.owner;
 	}
 
 	public void setTarget(Entity target) {
@@ -165,12 +156,11 @@ public class Unit extends Entity {
 			this.attackTimer--;
 			if (this.attackTimer < 0) {
 				this.attackTimer = ATTACK_TIME;
-				this.takeDamage(targetEntity);
 				targetEntity.takeDamage(this);
 				Sounds.randomPlay();
 			}
 		}
-		else {
+		else if (this.attackTimer < ATTACK_TIME) {
 			this.attackTimer = ATTACK_TIME;
 		}
 	}

@@ -313,6 +313,10 @@ public class SurvivalGame extends Renderable {
 	public ArrayList<PixelData> getPixelData() {
 		return this.pixels;
 	}
+
+	public void reset() {
+		this.initialize();
+	}
 	
 	public void initialize() {
 		this.gameHasInitialized = false;
@@ -321,14 +325,7 @@ public class SurvivalGame extends Renderable {
 		this.gameHasInitialized = true;
 	}
 
-	public void reset() {
-		this.initialize();
-	}
-	
 	private void initializeGameData() {
-		// buildings.clear();
-		// units.clear();
-
 		for (Faction f : this.factions) {
 			f.reset();
 		}
