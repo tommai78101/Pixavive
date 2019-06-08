@@ -17,6 +17,7 @@ public class Entity extends Point {
 	public ID id;
 	public int number;
 	public PixelData pixelData;
+	public PixelData currentPixelData;
 	
 	public boolean shouldDespawn;
 	
@@ -52,10 +53,10 @@ public class Entity extends Point {
 	public PixelData getPixelData() {
 		if (this.pixelData == null) {
 			this.pixelData = new PixelData();
-			this.pixelData.x = (int) Math.rint(this.x);
-			this.pixelData.y = (int) Math.rint(this.y);
 			this.pixelData.color = this.teamColor.color;
 		}
+		this.pixelData.x = (int) Math.rint(this.x);
+		this.pixelData.y = (int) Math.rint(this.y);
 		return this.pixelData;
 	}
 }

@@ -9,15 +9,17 @@ import main.GameComponent;
 import sounds.Sounds;
 
 public class Unit extends Entity {
-	public Building target;
+	public static final double ATTACK_DISTANCE = 4.0;
+	public static final int ATTACK_TIME = 50;
+
 	public Building spawnBuilding;
 	public Entity targetEntity;
+
+	protected boolean shouldMove;
+
 	private int renderX, renderY;
 	private int attackTimer;
 	private Faction owner;
-
-	protected final double ATTACK_DISTANCE = 4.0;
-	protected final int ATTACK_TIME = 50;
 
 	public Unit(TeamColor teamColor) {
 		this.teamColor = teamColor;
@@ -25,6 +27,7 @@ public class Unit extends Entity {
 		targetEntity = null;
 		this.health = 0x20;
 		this.attackTimer = ATTACK_TIME;
+		this.shouldMove = false;
 	}
 
 	public void setFaction(Faction faction) {
@@ -33,6 +36,14 @@ public class Unit extends Entity {
 
 	public Faction getFaction() {
 		return this.owner;
+	}
+
+	public void setTarget(Entity target) {
+		this.targetEntity = target;
+	}
+
+	public Entity getTarget() {
+		return this.targetEntity;
 	}
 
 	public Building findNearestBuilding(ArrayList<Building> enemyBuildings) {
@@ -89,11 +100,12 @@ public class Unit extends Entity {
 		spawnBuilding = b;
 		this.x = b.x;
 		this.y = b.y;
+		this.owner = b.getFaction();
 		shouldDespawn = false;
 	}
 
 	public void setTargetBuilding(Building b) {
-		target = b;
+		this.targetEntity = b;
 	}
 
 	public void tick() {
@@ -148,7 +160,7 @@ public class Unit extends Entity {
 	public void attack() {
 		if (targetEntity == null)
 			return;
-		double distanceSquared = this.getDistance(this.targetEntity);
+		double distanceSquared = this.getDistanceSquared(this.targetEntity);
 		if (distanceSquared <= ATTACK_DISTANCE * ATTACK_DISTANCE + 3.0) {
 			this.attackTimer--;
 			if (this.attackTimer < 0) {

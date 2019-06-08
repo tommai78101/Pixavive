@@ -1,5 +1,6 @@
 package entity;
 
+import game.Faction;
 import game.PixelData;
 import game.SurvivalGame.TeamColor;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ public class Building extends Entity {
 	private int health;
 	private int renderX, renderY;
 	private int unitSpawnedCounter;
+	private Faction owner;
 	
 	public Building() {
 		alphaValue = 0;
@@ -37,6 +39,14 @@ public class Building extends Entity {
 	public void setColor(TeamColor teamColor) {
 		this.color = teamColor.color;
 		this.teamColor = teamColor;
+	}
+
+	public void setFaction(Faction newOwner) {
+		this.owner = newOwner;
+	}
+
+	public Faction getFaction() {
+		return this.owner;
 	}
 	
 	public void tick() {
@@ -106,6 +116,7 @@ public class Building extends Entity {
 	
 	public Dot createUnit() {
 		Dot dot = new Dot(this.teamColor);
+		dot.setFaction(this.owner);
 		dot.number = unitSpawnedCounter;
 		dot.setSpawnBuilding(this);
 		unitSpawnedCounter++;

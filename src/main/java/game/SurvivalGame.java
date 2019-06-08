@@ -330,7 +330,7 @@ public class SurvivalGame extends Renderable {
 		// units.clear();
 
 		for (Faction f : this.factions) {
-			f.initialize();
+			f.reset();
 		}
 		
 		createRandomNumberOfBuildings(1, TeamColor.RED);
@@ -518,11 +518,16 @@ public class SurvivalGame extends Renderable {
 				for (Iterator<Dot> unitIterator = aUnits.iterator(); unitIterator.hasNext();) { 
 					Dot dot = unitIterator.next();
 					Entity entity = dot.findNearestEntity(bBuildings, bUnits);
-					if (entity != null && dot.path.isEmpty() && dot.pathCounter == 0) {
-						this.pathArea.setGoalNode(entity.getPixelData());
-						this.pathArea.setStartNode(dot.getPixelData());
-						dot.setPath(this.pathArea.createPath());
-						this.pathArea.reset();
+					if (entity != null) {
+						Entity dotTarget = dot.getTarget();
+						if ((dot.pathCounter == 0) || (entity == null) || (dotTarget != entity) || (dot.path.isEmpty() && dot.getDistanceSquared(entity) > Unit.ATTACK_DISTANCE * Unit.ATTACK_DISTANCE)) {
+							if (!dot.path.isEmpty())
+								dot.path.clear();
+							this.pathArea.setStartNode(dot.getPixelData());
+							this.pathArea.setGoalNode(entity.getPixelData());
+							dot.setPath(this.pathArea.createPath());
+							this.pathArea.reset();
+						}
 					}
 					dot.tick();
 					if (dot.shouldDespawn()) {

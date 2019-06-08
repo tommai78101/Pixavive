@@ -6,6 +6,9 @@ import javax.imageio.ImageIO;
 
 public class Art {
 	
+	// Font: Showcard Gothic
+	// Size: 2.6 pt
+
 	public static class Bitmap {
 		public int[] pixels;
 		public int width, height;

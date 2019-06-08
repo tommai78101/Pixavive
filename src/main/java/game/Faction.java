@@ -80,6 +80,7 @@ public class Faction implements Interactable {
 		if (this.getBuildingsCount() > Faction.BUILDING_LIMIT)
 			return false;
 		Building building = new Building(x, y);
+		building.setFaction(this);
 		boolean positionHasBuilding = false;
 		for (Building b : buildings) {
 			if (b.x == building.x && b.y == building.y) {
@@ -101,6 +102,18 @@ public class Faction implements Interactable {
 
 	public int getID() {
 		return this.factionID.getID();
+	}
+
+	public void reset() {
+		if (this.isInitialized) {
+			this.buildings.clear();
+			this.units.clear();
+			this.hasLost = false;
+			this.killCount = 0;
+		}
+		else {
+			this.initialize();
+		}
 	}
 
 	@Override

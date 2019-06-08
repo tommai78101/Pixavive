@@ -32,23 +32,25 @@ public class Dot extends Unit {
 	
 	@Override
 	public void move() {
+		shouldMove = true;
 		shouldRender = true;
 		if (path != null && !path.isEmpty()) {
-			if (targetEntity != null) {
+			if (shouldMove && targetEntity != null) {
 				PathNode node = path.peekLast();
-				if (node != null && node.getDistance(targetEntity) >= ATTACK_DISTANCE * ATTACK_DISTANCE) {
+				if (node != null && this.getDistanceSquared(targetEntity) > Unit.ATTACK_DISTANCE * Unit.ATTACK_DISTANCE) {
 					this.x = (node.x);
 					this.y = (node.y);
 					path.pollLast();
 				}
 				else {
-					pathCounter = 1;
+					shouldMove = false;
 				}
+				pathCounter++;
 			}
-			else {
-				path.clear();
-				pathCounter = 0;
-			}
+		}
+		if (!shouldMove || (pathCounter > 20)) {
+			this.path.clear();
+			pathCounter = 0;
 		}
 	}
 	

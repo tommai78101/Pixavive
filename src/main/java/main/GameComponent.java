@@ -74,6 +74,8 @@ public class GameComponent extends Canvas implements Runnable {
 			now = System.nanoTime();
 			unprocessedTime += (now - lastTime) / ticksPerSecond;
 			lastTime = now;
+			if (unprocessedTime > 1)
+				unprocessedTime = 1.0;
 			
 			boolean render = false;
 			while (unprocessedTime >= 1) {
